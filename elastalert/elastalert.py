@@ -1273,10 +1273,14 @@ class ElastAlerter(object):
             self.handle_uncaught_exception(e, rule)
         else:
             old_starttime = pretty_ts(rule.get('original_starttime'), rule.get('use_local_time'))
-            elastalert_logger.info("Ran %s from %s to %s: %s query hits (%s already seen), %s matches,"
-                                   " %s alerts sent" % (rule['name'], old_starttime, pretty_ts(endtime, rule.get('use_local_time')),
-                                                        self.thread_data.num_hits, self.thread_data.num_dupes, num_matches,
-                                                        self.thread_data.alerts_sent))
+            try:
+                elastalert_logger.info("Ran %s from %s to %s: %s query hits (%s already seen), %s matches,"
+                                       " %s alerts sent" % (rule['name'], old_starttime, pretty_ts(endtime, rule.get('use_local_time')),
+                                                            self.thread_data.num_hits, self.thread_data.num_dupes, num_matches,
+                                                            self.thread_data.alerts_sent))
+            except AttributeError:
+                elastalert_logger.info("Unexpected thread_data problem: %r" % self.thread_data.__dict__)
+                raise
             self.thread_data.alerts_sent = 0
 
             if next_run < datetime.datetime.utcnow():
